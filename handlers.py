@@ -29,9 +29,6 @@ async def cmd_start(message: Message, state: FSMContext):
             await state.update_data(referrer_id=referrer_id)
             await add_user(message.from_user.id)
         if await subscribe_check(message.from_user.id, main_channel):
-            if await get_token_balance(message.from_user.id) == 0:
-                await increment_token_balance(message.from_user.id, reg)
-                await message.answer(start_bonus_text, parse_mode="MarkdownV2")
             referrer_id = await state.get_data()
             referrer_id = referrer_id['referrer_id']
             if referrer_id is not None and referrer_id != message.from_user.id:
@@ -53,6 +50,7 @@ async def check_subscribe(callback: CallbackQuery):
     if await subscribe_check(callback.from_user.id, main_channel):
         await callback.message.delete()
         if await get_token_balance(callback.from_user.id) == 0:
+            await increment_token_balance(callback.from_user.id, reg)
             await callback.message.answer(new_subscribe_is_valid_text, parse_mode="MarkdownV2",
                                           reply_markup=default_reply_keyboard)
         else:
