@@ -110,8 +110,8 @@ async def get_wallet_cmd(message: Message):
     if message.chat.type == 'private':
         if await subscribe_check(message.from_user.id, main_channel):
             await message.answer_photo(FSInputFile('images/wallet.jpg'),
-                                       wallet_info_text + '`' + await get_wallet(message.from_user.id) + '`',
-                                       parse_mode="MarkdownV2", reply_markup=wallet_reply_keyboard)
+                                       wallet_info_text + '`' + format_text(await get_wallet(message.from_user.id)) +
+                                       '`', parse_mode="MarkdownV2", reply_markup=wallet_reply_keyboard)
         else:
             await message.answer(subscribe_text, parse_mode="MarkdownV2", reply_markup=check_subscribe_keyboard)
 

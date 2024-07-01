@@ -6,7 +6,7 @@ from aiogram.types import ChatMemberMember, ChatMemberAdministrator, ChatMemberO
 
 config = dotenv_values('bot.env')
 bot = Bot(token=config['api'])
-base64 = digits + ascii_uppercase + ascii_lowercase
+base64 = digits + ascii_uppercase + ascii_lowercase + '_-'
 
 
 def format_text(text):
