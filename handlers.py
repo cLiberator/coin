@@ -29,9 +29,36 @@ async def cmd_start(message: Message, state: FSMContext):
             await state.update_data(referrer_id=referrer_id)
             await add_user(message.from_user.id)
         if await subscribe_check(message.from_user.id, main_channel):
+            try:
+                referrer_id = await state.get_data()
+                referrer_id = referrer_id['referrer_id']
+                if referrer_id is not None and referrer_id != message.from_user.id:
+                    await increment_referrers_count(referrer_id)
+                    await increment_token_balance(referrer_id, ref)
+                    try:
+                        await bot.send_message(referrer_id, referrer_success_text)
+                    except:
+                        pass
+                    await state.update_data(referrer_id=None)
+            except:
+                await state.update_data(referrer_id=None)
+            await message.answer_photo(FSInputFile('images/terms.jpg'), start_text, parse_mode="MarkdownV2",
+                                       reply_markup=default_reply_keyboard)
+            if await get_token_balance(message.from_user.id) == 0:
+                await increment_token_balance(message.from_user.id, reg)
+                await message.answer(new_subscribe_is_valid_text, parse_mode="MarkdownV2",
+                                     reply_markup=default_reply_keyboard)
+        else:
+            await message.answer(subscribe_text, parse_mode="MarkdownV2", reply_markup=check_subscribe_keyboard)
+
+
+@user_router.callback_query(F.data == 'check_subscribe')
+async def check_subscribe(callback: CallbackQuery, state: FSMContext):
+    if await subscribe_check(callback.from_user.id, main_channel):
+        try:
             referrer_id = await state.get_data()
             referrer_id = referrer_id['referrer_id']
-            if referrer_id is not None and referrer_id != message.from_user.id:
+            if referrer_id is not None and referrer_id != callback.from_user.id:
                 await increment_referrers_count(referrer_id)
                 await increment_token_balance(referrer_id, ref)
                 try:
@@ -39,15 +66,8 @@ async def cmd_start(message: Message, state: FSMContext):
                 except:
                     pass
                 await state.update_data(referrer_id=None)
-            await message.answer_photo(FSInputFile('images/terms.jpg'), start_text, parse_mode="MarkdownV2",
-                                       reply_markup=default_reply_keyboard)
-        else:
-            await message.answer(subscribe_text, parse_mode="MarkdownV2", reply_markup=check_subscribe_keyboard)
-
-
-@user_router.callback_query(F.data == 'check_subscribe')
-async def check_subscribe(callback: CallbackQuery):
-    if await subscribe_check(callback.from_user.id, main_channel):
+        except:
+            await state.update_data(referrer_id=None)
         await callback.message.delete()
         if await get_token_balance(callback.from_user.id) == 0:
             await increment_token_balance(callback.from_user.id, reg)
